@@ -322,6 +322,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
             //some facebook user's dont have email address
             if ($userProfile->email == ''){
               $userProfile->email = $userProfile->identifier.'@facebook.com';
+              $userProfile->email = $userProfile->emailVerified;
             }
             else
             throw new Exception\RuntimeException(
