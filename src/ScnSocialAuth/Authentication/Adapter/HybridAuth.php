@@ -319,6 +319,11 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
     protected function facebookToLocalUser($userProfile)
     {
         if (!isset($userProfile->emailVerified)) {
+            //some facebook user's dont have email address
+            if ($userProfile->email == ''){
+              $userProfile->email = $userProfile->identifier.'@facebook.com';
+            }
+            else
             throw new Exception\RuntimeException(
                 'Please verify your email with Facebook before attempting login',
                 Result::FAILURE_CREDENTIAL_INVALID
