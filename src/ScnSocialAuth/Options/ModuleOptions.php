@@ -12,6 +12,7 @@ class ModuleOptions extends AbstractOptions
     protected $__strictMode__ = false;
 
     protected $providers = array(
+        'bitbucket',
         'facebook',
         'foursquare',
         'github',
@@ -19,7 +20,12 @@ class ModuleOptions extends AbstractOptions
         'linkedIn',
         'twitter',
         'yahoo',
-        'tumblr'
+        'tumblr',
+        'mailru',
+        'odnoklassniki',
+        'vkontakte',
+        'yandex',
+        'instagram',
     );
 
     /**
@@ -51,6 +57,11 @@ class ModuleOptions extends AbstractOptions
      * @var string
      */
     protected $facebookDisplay;
+
+    /**
+     * @var boolean
+     */
+    protected $facebookTrustForwarded;
 
     /**
      * @var string
@@ -173,9 +184,118 @@ class ModuleOptions extends AbstractOptions
     protected $tumblrConsumerSecret;
 
     /**
+     * @var boolean
+     */
+    protected $mailruEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $mailruClientId;
+
+    /**
+     * @var string
+     */
+    protected $mailruSecret;
+
+    /**
+     * @var boolean
+     */
+    protected $vkontakteEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $vkontakteAppId;
+
+    /**
+     * @var string
+     */
+    protected $vkontakteSecret;
+
+    /**
+     * @var boolean
+     */
+    protected $yandexEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $yandexAppId;
+
+    /**
+     * @var string
+     */
+    protected $yandexSecret;
+
+    /**
+     * @var boolean
+     */
+    protected $odnoklassnikiEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $odnoklassnikiApplicationId;
+
+    /**
+     * @var string
+     */
+    protected $odnoklassnikiKey;
+
+    /**
+     * @var string
+     */
+    protected $odnoklassnikiSecret;
+
+    /**
+     * @var boolean
+     */
+    protected $instagramEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $instagramClientId;
+    /**
+     * @var string
+     */
+    protected $instagramClientSecret;
+
+    /**
      * @var string
      */
     protected $socialLoginOnly = false;
+
+    /**
+     * @var boolean
+     */
+    protected $enableSocialRegistration = true;
+
+    /**
+     * @var boolean
+     */
+    protected $debugMode = false;
+
+    /**
+     * @var boolean
+     */
+    protected $debugFile = "/tmp/hybridauth.log";
+
+    /**
+     * @var string
+     */
+    protected $bitbucketEnabled = false;
+
+    /**
+     * @var string
+     */
+    protected $bitbucketKey;
+
+    /**
+     * @var string
+     */
+    protected $bitbucketSecret;
 
     /**
      * get an array of enabled providers
@@ -331,6 +451,26 @@ class ModuleOptions extends AbstractOptions
     public function getFacebookDisplay()
     {
         return $this->facebookDisplay;
+    }
+
+    /**
+     * @param boolean $facebookTrustForwarded
+     *
+     * @return ModuleOptions
+     */
+    public function setFacebookTrustForwarded($facebookTrustForwarded)
+    {
+        $this->facebookTrustForwarded = $facebookTrustForwarded;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getFacebookTrustForwarded()
+    {
+        return $this->facebookTrustForwarded;
     }
 
     /**
@@ -899,6 +1039,262 @@ class ModuleOptions extends AbstractOptions
     }
 
     /**
+     * @param string $mailruClientId
+     */
+    public function setMailruClientId($mailruClientId)
+    {
+        $this->mailruClientId = (string) $mailruClientId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMailruClientId()
+    {
+        return $this->mailruClientId;
+    }
+
+    /**
+     * @param boolean $mailruEnabled
+     */
+    public function setMailruEnabled($mailruEnabled)
+    {
+        $this->mailruEnabled = (bool) $mailruEnabled;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getMailruEnabled()
+    {
+        return $this->mailruEnabled;
+    }
+
+    /**
+     * @param string $mailruSecret
+     */
+    public function setMailruSecret($mailruSecret)
+    {
+        $this->mailruSecret = (string) $mailruSecret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMailruSecret()
+    {
+        return $this->mailruSecret;
+    }
+
+    /**
+     * @param string $odnoklassnikiApplicationId
+     */
+    public function setOdnoklassnikiAppId($odnoklassnikiApplicationId)
+    {
+        $this->odnoklassnikiApplicationId = (string) $odnoklassnikiApplicationId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOdnoklassnikiAppId()
+    {
+        return $this->odnoklassnikiApplicationId;
+    }
+
+    /**
+     * @param boolean $odnoklassnikiEnabled
+     */
+    public function setOdnoklassnikiEnabled($odnoklassnikiEnabled)
+    {
+        $this->odnoklassnikiEnabled = (bool) $odnoklassnikiEnabled;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getOdnoklassnikiEnabled()
+    {
+        return $this->odnoklassnikiEnabled;
+    }
+
+    /**
+     * @param string $odnoklassnikiKey
+     */
+    public function setOdnoklassnikiKey($odnoklassnikiKey)
+    {
+        $this->odnoklassnikiKey = (string) $odnoklassnikiKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOdnoklassnikiKey()
+    {
+        return $this->odnoklassnikiKey;
+    }
+
+    /**
+     * @param string $odnoklassnikiSecret
+     */
+    public function setOdnoklassnikiSecret($odnoklassnikiSecret)
+    {
+        $this->odnoklassnikiSecret = (string) $odnoklassnikiSecret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOdnoklassnikiSecret()
+    {
+        return $this->odnoklassnikiSecret;
+    }
+
+    /**
+     * @param string $vkontakteAppId
+     */
+    public function setVkontakteAppId($vkontakteAppId)
+    {
+        $this->vkontakteAppId = (string) $vkontakteAppId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVkontakteAppId()
+    {
+        return $this->vkontakteAppId;
+    }
+
+    /**
+     * @param boolean $vkontakteEnabled
+     */
+    public function setVkontakteEnabled($vkontakteEnabled)
+    {
+        $this->vkontakteEnabled = (bool) $vkontakteEnabled;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getVkontakteEnabled()
+    {
+        return $this->vkontakteEnabled;
+    }
+
+    /**
+     * @param string $vkontakteSecret
+     */
+    public function setVkontakteSecret($vkontakteSecret)
+    {
+        $this->vkontakteSecret = (string) $vkontakteSecret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVkontakteSecret()
+    {
+        return $this->vkontakteSecret;
+    }
+
+    /**
+     * @param string $yandexAppId
+     */
+    public function setYandexAppId($yandexAppId)
+    {
+        $this->yandexAppId = (string) $yandexAppId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getYandexAppId()
+    {
+        return $this->yandexAppId;
+    }
+
+    /**
+     * @param boolean $yandexEnabled
+     */
+    public function setYandexEnabled($yandexEnabled)
+    {
+        $this->yandexEnabled = (bool) $yandexEnabled;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getYandexEnabled()
+    {
+        return $this->yandexEnabled;
+    }
+
+    /**
+     * @param string $yandexSecret
+     */
+    public function setYandexSecret($yandexSecret)
+    {
+        $this->yandexSecret = (string) $yandexSecret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getYandexSecret()
+    {
+        return $this->yandexSecret;
+    }
+
+    /**
+     * @param string $instagramClientId
+     */
+    public function setInstagramClientId($instagramClientId)
+    {
+        $this->instagramClientId = (string) $instagramClientId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getInstagramClientId()
+    {
+        return $this->instagramClientId;
+    }
+
+    /**
+     * @param boolean $instagramEnabled
+     */
+    public function setInstagramEnabled($instagramEnabled)
+    {
+        $this->instagramEnabled = (bool) $instagramEnabled;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getInstagramEnabled()
+    {
+        return $this->instagramEnabled;
+    }
+
+    /**
+     * @param string $instagramClientSecret
+     */
+    public function setInstagramClientSecret($instagramClientSecret)
+    {
+        $this->instagramClientSecret = (string) $instagramClientSecret;
+    }
+
+    /**
+     * @return string
+     */
+    public function getinstagramClientSecret()
+    {
+        return $this->instagramClientSecret;
+    }
+
+    /**
      * get social login only
      *
      * @return string
@@ -906,5 +1302,107 @@ class ModuleOptions extends AbstractOptions
     public function getSocialLoginOnly()
     {
         return $this->socialLoginOnly;
+    }
+
+    /**
+     * Sets enableSocialRegistration
+     *
+     * @param bool $enableSocialRegistration
+     *
+     * @return void
+     */
+    public function setEnableSocialRegistration($enableSocialRegistration)
+    {
+        $this->enableSocialRegistration = (bool) $enableSocialRegistration;
+    }
+
+    /**
+     * Gets enableSocialRegistration
+     *
+     * @return bool
+     */
+    public function getEnableSocialRegistration()
+    {
+        return $this->enableSocialRegistration;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getDebugMode()
+    {
+        return $this->debugMode;
+    }
+
+    /**
+     * @param boolean $debugMode
+     */
+    public function setDebugMode($debugMode)
+    {
+        $this->debugMode = (boolean) $debugMode;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDebugFile()
+    {
+        return $this->debugFile;
+    }
+
+    /**
+     * @param string $debugFile
+     */
+    public function setDebugFile($debugFile)
+    {
+        $this->debugFile = (string) $debugFile;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getBitbucketEnabled()
+    {
+        return $this->bitbucketEnabled;
+    }
+
+    /**
+     * @param boolean $bitbucketEnabled
+     */
+    public function setBitbucketEnabled($bitbucketEnabled)
+    {
+        $this->bitbucketEnabled = $bitbucketEnabled;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBitbucketKey()
+    {
+        return $this->bitbucketKey;
+    }
+
+    /**
+     * @param string $bitbucketKey
+     */
+    public function setBitbucketKey($bitbucketKey)
+    {
+        $this->bitbucketKey = $bitbucketKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBitbucketSecret()
+    {
+        return $this->bitbucketSecret;
+    }
+
+    /**
+     * @param string $bitbucketSecret
+     */
+    public function setBitbucketSecret($bitbucketSecret)
+    {
+        $this->bitbucketSecret = $bitbucketSecret;
     }
 }

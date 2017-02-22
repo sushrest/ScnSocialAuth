@@ -4,17 +4,10 @@ namespace ScnSocialAuth\Controller\Plugin;
 
 use ScnSocialAuth\Mapper\UserProviderInterface;
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
-use Zend\ServiceManager\ServiceLocatorAwareInterface;
-use Zend\ServiceManager\ServiceLocatorInterface;
 use ZfcUser\Entity\UserInterface;
 
-class ScnSocialAuthProvider extends AbstractPlugin implements ServiceLocatorAwareInterface
+class ScnSocialAuthProvider extends AbstractPlugin
 {
-    /**
-     * @var ServiceLocator
-     */
-    protected $serviceLocator;
-
     /**
      * @var UserProviderInterface
      */
@@ -25,7 +18,6 @@ class ScnSocialAuthProvider extends AbstractPlugin implements ServiceLocatorAwar
      *
      * @param UserInterface $user
      * @param string        $provider
-     * @param UserProviderInterface|false
      */
     public function getProvider(UserInterface $user, $provider)
     {
@@ -36,7 +28,6 @@ class ScnSocialAuthProvider extends AbstractPlugin implements ServiceLocatorAwar
      * Returns an array of UserProviderInterface for $user
      *
      * @param UserInterface $user
-     * @param UserProviderInterface|false
      */
     public function getProviders(UserInterface $user)
     {
@@ -63,30 +54,6 @@ class ScnSocialAuthProvider extends AbstractPlugin implements ServiceLocatorAwar
      */
     public function getMapper()
     {
-        if (!$this->mapper instanceof UserProviderInterface) {
-            $this->setMapper($this->getServiceLocator()->get('ScnSocialAuth-UserProviderMapper'));
-        }
-
         return $this->mapper;
-    }
-
-    /**
-     * Retrieve service manager instance
-     *
-     * @return ServiceLocator
-     */
-    public function getServiceLocator()
-    {
-        return $this->serviceLocator->getServiceLocator();
-    }
-
-    /**
-     * Set service locator
-     *
-     * @param ServiceLocatorInterface $serviceLocator
-     */
-    public function setServiceLocator(ServiceLocatorInterface $serviceLocator)
-    {
-        $this->serviceLocator = $serviceLocator;
     }
 }

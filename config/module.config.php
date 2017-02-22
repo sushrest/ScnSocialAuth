@@ -7,8 +7,8 @@ return array(
         ),
     ),
     'controller_plugins' => array(
-        'invokables' => array(
-            'scnsocialauthprovider' => 'ScnSocialAuth\Controller\Plugin\ScnSocialAuthProvider',
+        'factories' => array(
+            'scnSocialAuthProvider' => 'ScnSocialAuth\Service\ProviderControllerPluginFactory',
         ),
     ),
     'router' => array(
@@ -43,6 +43,22 @@ return array(
                             'defaults' => array(
                                 'controller' => 'zfcuser',
                                 'action'     => 'authenticate',
+                            ),
+                        ),
+                        'may_terminate' => true,
+                        'child_routes' => array(
+                            'provider' => array(
+                                'type' => 'Segment',
+                                'options' => array(
+                                    'route' => '/:provider',
+                                    'constraints' => array(
+                                        'provider' => '[a-zA-Z][a-zA-Z0-9_-]+',
+                                    ),
+                                    'defaults' => array(
+                                        'controller' => 'ScnSocialAuth-User',
+                                        'action' => 'provider-authenticate',
+                                    ),
+                                ),
                             ),
                         ),
                     ),
@@ -126,8 +142,9 @@ return array(
             'HybridAuth' => 'ScnSocialAuth\Service\HybridAuthFactory',
             'ScnSocialAuth-ModuleOptions' => 'ScnSocialAuth\Service\ModuleOptionsFactory',
             'ScnSocialAuth-UserProviderMapper' => 'ScnSocialAuth\Service\UserProviderMapperFactory',
+            'ScnSocialAuth-AuthenticationAdapterChain' => 'ScnSocialAuth\Service\AuthenticationAdapterChainFactory',
             'ScnSocialAuth\Authentication\Adapter\HybridAuth' => 'ScnSocialAuth\Service\HybridAuthAdapterFactory',
-            'ZfcUser\Authentication\Adapter\AdapterChain' => 'ScnSocialAuth\Service\AuthenticationAdapterChainFactory',
+            'zfcuser_redirect_callback' => 'ScnSocialAuth\Service\RedirectCallbackFactory',
         ),
     ),
     'view_helpers' => array(

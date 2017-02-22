@@ -2,14 +2,20 @@ ScnSocialAuth
 =============
 Uses the HybridAuth PHP library to Enable authentication via Google, Facebook, Twitter, Yahoo!, etc for the ZfcUser ZF2 module.
 
-[![Build Status](https://travis-ci.org/SocalNick/ScnSocialAuth.png)](https://travis-ci.org/SocalNick/ScnSocialAuth)
+[![Build Status](https://travis-ci.org/SocalNick/ScnSocialAuth.png)](https://travis-ci.org/SocalNick/ScnSocialAuth) [![Latest Stable Version](https://poser.pugx.org/socalnick/scn-social-auth/v/stable.png)](https://packagist.org/packages/socalnick/scn-social-auth) [![Total Downloads](https://poser.pugx.org/socalnick/scn-social-auth/downloads.png)](https://packagist.org/packages/socalnick/scn-social-auth)
+[![Dependency Status](https://www.versioneye.com/php/socalnick:scn-social-auth/badge.svg)](https://www.versioneye.com/php/socalnick:scn-social-auth/)
+
+Demo
+----
+* [Sandbox](http://scn-social-auth-sandbox.cfapps.io/user/login)
+* [Sandbox Code](https://github.com/SocalNick/ScnSocialAuth-Sandbox)
 
 Requirements
 ------------
-* [Zend Framework 2](https://github.com/zendframework/zf2) (latest master)
-* [ZfcBase](https://github.com/ZF-Commons/ZfcBase) (latest master)
-* [ZfcUser](https://github.com/ZF-Commons/ZfcUser) (latest master)
-* [HybridAuth](https://github.com/hybridauth/hybridauth) (latest master)
+* [Zend Framework 2](https://github.com/zendframework/zf2) (2.*)
+* [ZfcBase](https://github.com/ZF-Commons/ZfcBase) (0.1.*)
+* [ZfcUser](https://github.com/ZF-Commons/ZfcUser) (1.4.*)
+* [HybridAuth](https://github.com/hybridauth/hybridauth) (2.8.*)
 * Extension php_curl enabled in php.ini
 
 Features
@@ -18,6 +24,7 @@ Features
 * Login with Facebook [COMPLETE]
 * Login with Foursquare [COMPLETE]
 * Login with Github [COMPLETE]
+* Login with BitBucket [COMPLETE]
 * Login with Google [COMPLETE]
 * Login with LinkedIn [COMPLETE]
 * Login with Live [INCOMPLETE]
@@ -25,11 +32,16 @@ Features
 * Login with OpenID [INCOMPLETE]
 * Login with Twitter [COMPLETE]
 * Login with Yahoo! [COMPLETE]
-* Login with tumblr [COMPLETE]
+* Login with Tumblr [COMPLETE]
+* Login with Mail.Ru [COMPLETE]
+* Login with Odnoklassniki [COMPLETE]
+* Login with VKontakte [COMPLETE]
+* Login with Yandex [COMPLETE]
+* Login with Instagram [COMPLETE]
 
 Installation
 ------------
-It is recommended to add this module to your Zend Framework 2 application using Composer. After cloning [ZendSkeletonApplication](https://github.com/zendframework/ZendSkeletonApplication), change the composer minimum-stability setting to "dev" and add "socalnick/scn-social-auth" to list of requirements, then run php composer.phar install/update. Your composer.json should look something like this:
+It is recommended to add this module to your Zend Framework 2 application using Composer. After cloning [ZendSkeletonApplication](https://github.com/zendframework/ZendSkeletonApplication), add "socalnick/scn-social-auth" to list of requirements, then run php composer.phar install/update. Your composer.json should look something like this:
 ```
 {
     "name": "zendframework/skeleton-application",
@@ -39,12 +51,11 @@ It is recommended to add this module to your Zend Framework 2 application using 
         "framework",
         "zf2"
     ],
-    "minimum-stability": "dev",
     "homepage": "http://framework.zend.com/",
     "require": {
         "php": ">=5.3.3",
-        "zendframework/zendframework": "dev-master",
-        "socalnick/scn-social-auth": "dev-master"
+        "zendframework/zendframework": "2.*",
+        "socalnick/scn-social-auth": "1.*"
     }
 }
 ```

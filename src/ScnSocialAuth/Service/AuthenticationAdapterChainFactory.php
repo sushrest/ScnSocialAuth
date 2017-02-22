@@ -20,10 +20,17 @@ class AuthenticationAdapterChainFactory implements FactoryInterface
 {
     public function createService(ServiceLocatorInterface $services)
     {
+        // Temporarily replace the adapters in the module options with the HybridAuth adapter
+        $zfcUserModuleOptions = $services->get('zfcuser_module_options');
+        $currentAuthAdapters = $zfcUserModuleOptions->getAuthAdapters();
+        $zfcUserModuleOptions->setAuthAdapters(array(100 => 'ScnSocialAuth\Authentication\Adapter\HybridAuth'));
+
+        // Create a new adapter chain with HybridAuth adapter
         $factory = new AdapterChainServiceFactory();
         $chain = $factory->createService($services);
-        $adapter = $services->get('ScnSocialAuth\Authentication\Adapter\HybridAuth');
-        $chain->getEventManager()->attach('authenticate', array($adapter, 'authenticate'), 1000);
+
+        // Reset the adapters in the module options
+        $zfcUserModuleOptions->setAuthAdapters($currentAuthAdapters);
 
         return $chain;
     }

@@ -3,31 +3,24 @@
 namespace ScnSocialAuth\Authentication\Adapter;
 
 use Hybrid_Auth;
-use ScnSocialAuth\Authentication\Adapter\Exception;
 use ScnSocialAuth\Mapper\UserProviderInterface;
 use ScnSocialAuth\Options\ModuleOptions;
 use Zend\Authentication\Result;
-use Zend\ServiceManager\ServiceManagerAwareInterface;
-use Zend\ServiceManager\ServiceManager;
 use ZfcUser\Authentication\Adapter\AbstractAdapter;
 use ZfcUser\Authentication\Adapter\AdapterChainEvent as AuthEvent;
+use ZfcUser\Entity\UserInterface;
 use ZfcUser\Mapper\UserInterface as UserMapperInterface;
 use ZfcUser\Options\UserServiceOptionsInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\EventManagerAwareInterface;
 
-class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface, EventManagerAwareInterface
+class HybridAuth extends AbstractAdapter implements EventManagerAwareInterface
 {
     /**
      * @var Hybrid_Auth
      */
     protected $hybridAuth;
-
-    /**
-     * @var ServiceManager
-     */
-    protected $serviceManager;
 
     /**
      * @var ModuleOptions
@@ -66,7 +59,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
         }
 
         $enabledProviders = $this->getOptions()->getEnabledProviders();
-        $provider = $authEvent->getRequest()->getQuery()->get('provider');
+        $provider = $authEvent->getRequest()->getMetadata('provider');
 
         if (empty($provider) || !in_array($provider, $enabledProviders)) {
             $authEvent->setCode(Result::FAILURE)
@@ -98,6 +91,13 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
 
         $localUserProvider = $this->getMapper()->findUserByProviderId($userProfile->identifier, $provider);
         if (false == $localUserProvider) {
+            if (!$this->getOptions()->getEnableSocialRegistration()) {
+                $authEvent->setCode(Result::FAILURE_IDENTITY_NOT_FOUND)
+                  ->setMessages(array('A record with the supplied identity could not be found.'));
+                $this->setSatisfied(false);
+
+                return false;
+            }
             $method = $provider.'ToLocalUser';
             if (method_exists($this, $method)) {
                 try {
@@ -114,14 +114,30 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
                 $localUser = $this->instantiateLocalUser();
                 $localUser->setDisplayName($userProfile->displayName)
                           ->setPassword($provider);
-                if ($userProfile->emailVerified) $localUser->setEmail($userProfile->emailVerified);
+                if (isset($userProfile->emailVerified) && !empty($userProfile->emailVerified)) {
+                    $localUser->setEmail($userProfile->emailVerified);
+                }
                 $result = $this->insert($localUser, $provider, $userProfile);
             }
             $localUserProvider = clone($this->getMapper()->getEntityPrototype());
             $localUserProvider->setUserId($localUser->getId())
                 ->setProviderId($userProfile->identifier)
                 ->setProvider($provider);
+
+            // Trigger register.pre event
+            $this->getEventManager()->trigger('register.pre', $this, array('user' => $localUser, 'userProvider' => $localUserProvider, 'userProfile' => $userProfile));
+
             $this->getMapper()->insert($localUserProvider);
+
+            // Trigger register.post event
+            $this->getEventManager()->trigger('register.post', $this, array('user' => $localUser, 'userProvider' => $localUserProvider));
+        } else {
+            $mapper = $this->getZfcUserMapper();
+            $localUser = $mapper->findById($localUserProvider->getUserId());
+
+            if ($localUser instanceof UserInterface) {
+                $this->update($localUser, $provider, $userProfile);
+            }
         }
 
         $zfcUserOptions = $this->getZfcUserOptions();
@@ -146,8 +162,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
         $storage['identity'] = $authEvent->getIdentity();
         $this->getStorage()->write($storage);
         $authEvent->setCode(Result::SUCCESS)
-          ->setMessages(array('Authentication successful.'))
-          ->stopPropagation();
+          ->setMessages(array('Authentication successful.'));
     }
 
     /**
@@ -157,10 +172,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
      */
     public function getHybridAuth()
     {
-        if (!$this->hybridAuth) {
-            $this->hybridAuth = $this->getServiceManager()->get('HybridAuth');
-        }
-
         return $this->hybridAuth;
     }
 
@@ -175,27 +186,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
         $this->hybridAuth = $hybridAuth;
 
         return $this;
-    }
-
-    /**
-     * Retrieve service manager instance
-     *
-     * @return ServiceManager
-     */
-    public function getServiceManager()
-    {
-        return $this->serviceManager;
-    }
-
-    /**
-     * Set service manager instance
-     *
-     * @param  ServiceManager $serviceManager
-     * @return void
-     */
-    public function setServiceManager(ServiceManager $serviceManager)
-    {
-        $this->serviceManager = $serviceManager;
     }
 
     /**
@@ -218,10 +208,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
      */
     public function getOptions()
     {
-        if (!$this->options instanceof ModuleOptions) {
-            $this->setOptions($this->getServiceLocator()->get('ScnSocialAuth-ModuleOptions'));
-        }
-
         return $this->options;
     }
 
@@ -241,10 +227,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
      */
     public function getZfcUserOptions()
     {
-        if (!$this->zfcUserOptions instanceof UserServiceOptionsInterface) {
-            $this->setZfcUserOptions($this->getServiceManager()->get('zfcuser_module_options'));
-        }
-
         return $this->zfcUserOptions;
     }
 
@@ -268,10 +250,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
      */
     public function getMapper()
     {
-        if (!$this->mapper instanceof UserProviderInterface) {
-            $this->setMapper($this->getServiceLocator()->get('ScnSocialAuth-UserProviderMapper'));
-        }
-
         return $this->mapper;
     }
 
@@ -295,10 +273,6 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
      */
     public function getZfcUserMapper()
     {
-        if (!$this->zfcUserMapper instanceof UserMapperInterface) {
-            $this->setZfcUserMapper($this->getServiceLocator()->get('zfcuser_user_mapper'));
-        }
-
         return $this->zfcUserMapper;
     }
 
@@ -316,13 +290,29 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
 
     // Provider specific methods
 
+    /**
+     * BitBucket to Local User
+     * @param $userProfile
+     * @return mixed
+     */
+    protected function bitbucketToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+            ->setPassword(__FUNCTION__)
+            ->setEmail($userProfile->email);
+        $this->insert($localUser, 'github', $userProfile);
+
+        return $localUser;
+    }
+
     protected function facebookToLocalUser($userProfile)
     {
-        if (!isset($userProfile->emailVerified)) {
+        if (!isset($userProfile->emailVerified) || empty($userProfile->emailVerified)) {
             //some facebook user's dont have email address
             if ($userProfile->email == ''){
               $userProfile->email = $userProfile->identifier.'@facebook.com';
-              $userProfile->email = $userProfile->emailVerified;
+              $userProfile->emailVerified = $userProfile->email;
             }
             else
             throw new Exception\RuntimeException(
@@ -345,7 +335,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
 
     protected function foursquareToLocalUser($userProfile)
     {
-        if (!isset($userProfile->emailVerified)) {
+        if (!isset($userProfile->emailVerified) || empty($userProfile->emailVerified)) {
             throw new Exception\RuntimeException(
                 'Please verify your email with Foursquare before attempting login',
                 Result::FAILURE_CREDENTIAL_INVALID
@@ -366,7 +356,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
 
     protected function googleToLocalUser($userProfile)
     {
-        if (!isset($userProfile->emailVerified)) {
+        if (!isset($userProfile->emailVerified) || empty($userProfile->emailVerified)) {
             throw new Exception\RuntimeException(
                 'Please verify your email with Google before attempting login',
                 Result::FAILURE_CREDENTIAL_INVALID
@@ -387,7 +377,7 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
 
     protected function linkedInToLocalUser($userProfile)
     {
-        if (!isset($userProfile->emailVerified)) {
+        if (!isset($userProfile->emailVerified) || empty($userProfile->emailVerified)) {
             throw new Exception\RuntimeException(
                 'Please verify your email with LinkedIn before attempting login',
                 Result::FAILURE_CREDENTIAL_INVALID
@@ -443,10 +433,61 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
         $localUser->setDisplayName($userProfile->displayName)
                   ->setPassword(__FUNCTION__)
                   ->setEmail($userProfile->email);
-
-        $this->getEventManager()->trigger(__FUNCTION__, $localUser, array('userProfile' => $userProfile));
-
         $result = $this->insert($localUser, 'github', $userProfile);
+
+        return $localUser;
+    }
+
+    protected function mailruToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+                  ->setPassword(__FUNCTION__)
+                  ->setEmail($userProfile->email);
+        $result = $this->insert($localUser, 'mailru', $userProfile);
+
+        return $localUser;
+    }
+
+    protected function odnoklassnikiToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+            ->setPassword(__FUNCTION__)
+            ->setEmail($userProfile->email);
+        $result = $this->insert($localUser, 'odnoklassniki', $userProfile);
+
+        return $localUser;
+    }
+
+    protected function vkontakteToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+            ->setPassword(__FUNCTION__);
+        $result = $this->insert($localUser, 'vkontakte', $userProfile);
+
+        return $localUser;
+    }
+
+    protected function yandexToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+            ->setPassword(__FUNCTION__)
+            ->setEmail($userProfile->email);
+        $result = $this->insert($localUser, 'yandex', $userProfile);
+
+        return $localUser;
+    }
+
+    protected function instagramToLocalUser($userProfile)
+    {
+        $localUser = $this->instantiateLocalUser();
+        $localUser->setDisplayName($userProfile->displayName)
+            ->setPassword(__FUNCTION__)
+            ->setEmail($userProfile->email);
+        $result = $this->insert($localUser, 'instagram', $userProfile);
 
         return $localUser;
     }
@@ -478,6 +519,30 @@ class HybridAuth extends AbstractAdapter implements ServiceManagerAwareInterface
         $this->getEventManager()->trigger('registerViaProvider', $this, $options);
         $result = $this->getZfcUserMapper()->insert($user);
         $this->getEventManager()->trigger('registerViaProvider.post', $this, $options);
+
+        return $result;
+    }
+
+    /**
+     * @param  UserInterface        $user
+     * @param  string               $provider
+     * @param  \Hybrid_User_Profile $userProfile
+     * @return mixed
+     */
+    protected function update(UserInterface $user, $provider, \Hybrid_User_Profile $userProfile)
+    {
+        $user->setDisplayName($userProfile->displayName);
+        $user->setEmail($userProfile->email);
+
+        $options = array(
+            'user'          => $user,
+            'provider'      => $provider,
+            'userProfile'   => $userProfile,
+        );
+
+        $this->getEventManager()->trigger('scnUpdateUser.pre', $this, $options);
+        $result = $this->getZfcUserMapper()->update($user);
+        $this->getEventManager()->trigger('scnUpdateUser.post', $this, $options);
 
         return $result;
     }

@@ -34,7 +34,21 @@ class HybridAuthFactory implements FactoryInterface
         $hybridAuth = new Hybrid_Auth(
             array(
                 'base_url' => $baseUrl,
+                "debug_mode" => $options->getDebugMode(),
+                "debug_file" => $options->getDebugFile(),
                 'providers' => array(
+                    'BitBucket' => array(
+                        'enabled' => $options->getBitbucketEnabled(),
+                        'keys' => array(
+                            'key' => $options->getBitbucketKey(),
+                            'secret' => $options->getBitbucketSecret(),
+                        ),
+                        'scope' => '',
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_BitBucket',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/BitBucket.php'),
+                        ),
+                    ),
                     'Facebook' => array(
                         'enabled' => $options->getFacebookEnabled(),
                         'keys' => array(
@@ -43,6 +57,7 @@ class HybridAuthFactory implements FactoryInterface
                         ),
                         'scope' => $options->getFacebookScope(),
                         'display' => $options->getFacebookDisplay(),
+                        'trustForwarded' => $options->getFacebookTrustForwarded(),
                     ),
                     'Foursquare' => array(
                         'enabled' => $options->getFoursquareEnabled(),
@@ -102,6 +117,62 @@ class HybridAuthFactory implements FactoryInterface
                         'wrapper' => array(
                             'class' => 'Hybrid_Providers_Tumblr',
                             'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Tumblr.php'),
+                        ),
+                    ),
+                    'Mailru' => array(
+                        'enabled' => $options->getMailruEnabled(),
+                        'keys' => array(
+                            'id' => $options->getMailruClientId(),
+                            'secret' => $options->getMailruSecret(),
+                        ),
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_Mailru',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Mailru.php'),
+                        ),
+                    ),
+                    'Odnoklassniki' => array(
+                        'enabled' => $options->getOdnoklassnikiEnabled(),
+                        'keys' => array(
+                            'id' => $options->getOdnoklassnikiAppId(),
+                            'key' => $options->getOdnoklassnikiKey(),
+                            'secret' => $options->getOdnoklassnikiSecret(),
+                        ),
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_Odnoklassniki',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Odnoklassniki.php'),
+                        ),
+                    ),
+                    'Vkontakte' => array(
+                        'enabled' => $options->getVkontakteEnabled(),
+                        'keys' => array(
+                            'id' => $options->getVkontakteAppId(),
+                            'secret' => $options->getVkontakteSecret(),
+                        ),
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_Vkontakte',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Vkontakte.php'),
+                        ),
+                    ),
+                    'Yandex' => array(
+                        'enabled' => $options->getYandexEnabled(),
+                        'keys' => array(
+                            'id' => $options->getYandexAppId(),
+                            'secret' => $options->getYandexSecret(),
+                        ),
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_Yandex',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Yandex.php'),
+                        ),
+                    ),
+                    'Instagram' => array(
+                        'enabled' => $options->getInstagramEnabled(),
+                        'keys' => array(
+                            'id' => $options->getInstagramClientId(),
+                            'secret' => $options->getInstagramClientSecret(),
+                        ),
+                        'wrapper' => array(
+                            'class' => 'Hybrid_Providers_Instagram',
+                            'path' => realpath(__DIR__ . '/../HybridAuth/Provider/Instagram.php'),
                         ),
                     ),
                 ),
